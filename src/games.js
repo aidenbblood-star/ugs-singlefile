@@ -1003,15 +1003,18 @@ const allGames = [
     // ... paste the other 999 here
 
 
+ // <--- THIS CLOSES YOUR 1,000 GAME LIST. DO NOT REMOVE THIS.
+
 function buildStash() {
     const container = document.getElementById('sections-container');
+    if (!container) return;
     container.innerHTML = '';
     
     // 1. Sort games A-Z
     allGames.sort((a, b) => a.name.localeCompare(b.name));
 
     allGames.forEach(game => {
-        // 2. Clean the name for the Section Header (Remove 'cl')
+        // 2. Clean Name Logic
         let cleanName = game.name.startsWith('cl') ? game.name.substring(2) : game.name;
         const letter = cleanName.charAt(0).toUpperCase();
         
@@ -1024,33 +1027,25 @@ function buildStash() {
             container.appendChild(section);
         }
 
-        // 3. Create the Button
+        // 3. Create Button
         const btn = document.createElement('button');
         btn.className = 'game-btn';
         btn.innerText = cleanName; 
-        btn.value = cleanName; 
-
-        // 4. CLICK LOGIC: Uses the Hash from index.html to bypass the 871MB limit
+        
         btn.onclick = () => {
-            const myUser = "aidenbblood-star";
-            const myRepo = "ugs-singlefile";
-            
             // This pulls the hash you set in your index.html automatically
-            const currentHash = window.GAME_HASH || "a9ae854e1587ea9eb698a966411af2c6faa89999";
-            
+            const currentHash = window.GAME_HASH || "fadd0e1e7873fcf48d2635a8ebea913c49f088f3";
             const fileName = game.gameUrl.split('/').pop();
             
-            // THE FIX: /combine/gh/ forces the browser to play the game instead of showing code
-            let finalUrl = `https://cdn.jsdelivr.net/gh/${myUser}/${myRepo}@${currentHash}/UGS-Files/${fileName}`;
-            
+            // THE BYPASS: Forces jsDelivr to play the game instead of showing code
+            let finalUrl = `https://cdn.jsdelivr.net{currentHash}/UGS-Files/${fileName}`;
             window.open(finalUrl, '_blank');
         };
 
-        // 5. THE MISSING LINK: Add the button to the section so it appears!
+        // 4. ADD TO PAGE: Without this, buttons are invisible!
         section.appendChild(btn); 
-
-    }); // Closes forEach
-} // Closes buildStash
+    });
+}
 
 
 
