@@ -1007,13 +1007,15 @@ function buildStash() {
     const container = document.getElementById('sections-container');
     container.innerHTML = '';
     
-    // Sort A-Z
+    // 1. Sort games A-Z
     allGames.sort((a, b) => a.name.localeCompare(b.name));
 
     allGames.forEach(game => {
-        const letter = game.name[0].toUpperCase();
-        let section = document.getElementById(`section-${letter}`);
+        // 2. Clean the name for the Section Header (Remove 'cl' if it exists)
+        let cleanName = game.name.startsWith('cl') ? game.name.substring(2) : game.name;
+        const letter = cleanName.charAt(0).toUpperCase();
         
+        let section = document.getElementById(`section-${letter}`);
         if (!section) {
             section = document.createElement('div');
             section.id = `section-${letter}`;
@@ -1022,10 +1024,16 @@ function buildStash() {
             container.appendChild(section);
         }
 
+        // 3. Create the Button
         const btn = document.createElement('button');
         btn.className = 'game-btn';
-        btn.innerText = game.name;
+        
+        // 4. THIS REMOVES 'cl' FROM THE BUTTON TEXT
+        btn.innerText = cleanName; 
+        
+        btn.value = cleanName; // Helps search find the clean name
         btn.onclick = () => window.open(game.gameUrl, '_blank');
         section.appendChild(btn);
     });
 }
+
