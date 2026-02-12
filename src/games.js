@@ -1032,8 +1032,23 @@ function buildStash() {
         btn.innerText = cleanName; 
         
         btn.value = cleanName; // Helps search find the clean name
-        btn.onclick = () => window.open(game.gameUrl, '_blank');
-        section.appendChild(btn);
+                // THE FIX: Replace your old btn.onclick with this
+        btn.onclick = () => {
+            const myUser = "aidenbblood-star";
+            const myRepo = "ugs-singlefile";
+            
+            // USE THE LATEST HASH HERE
+            const myHash = "a9ae854e1587ea9eb698a966411af2c6faa89999";
+            
+            // Gets the filename (e.g., "cl1.html")
+            const fileName = game.gameUrl.split('/').pop();
+            
+            // This is the "magic" URL that forces jsDelivr to show a website instead of code
+            let finalUrl = `https://cdn.jsdelivr.net/combine/gh/${myUser}/${myRepo}@${myHash}/UGS-Files/${fileName}`;
+            
+            window.open(finalUrl, '_blank');
+        };
+
     });
 }
 
