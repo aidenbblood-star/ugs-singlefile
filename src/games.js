@@ -1042,10 +1042,13 @@ function buildStash() {
             window.open(finalUrl, '_blank');
         };
 
-        // 4. ADD TO PAGE: Without this, buttons are invisible!
+               // 4. ADD TO PAGE: Without this, buttons are invisible!
         section.appendChild(btn); 
     });
-}
+} // <--- THIS BRACKET WAS MISSING! It closes the buildStash function.
+
+buildStash(); // <--- THIS RUNS THE CODE! Without this, the function just sits there.
+
 
 
 
