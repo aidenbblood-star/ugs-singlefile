@@ -1039,7 +1039,7 @@ function buildStash() {
             const fileName = game.gameUrl.split('/').pop();
             
             // FIXED URL: Added back myUser and myRepo (replace these if they differ)
-            const finalUrl = `https://fastly.jsdelivr.net/gh/aidenbblood-star/${currentHash}/UGS-Files/${fileName}?t=${Date.now()}`;
+            const finalUrl = `https://fastly.jsdelivr.net/gh/aidenbblood-star/ugs-singlefile@${currentHash}/UGS-Files/${fileName}?t=${Date.now()}`;
 
             fetch(finalUrl)
                 .then(r => r.ok ? r.text() : Promise.reject('File not found'))
