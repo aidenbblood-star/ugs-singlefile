@@ -1005,7 +1005,7 @@ const allGames = [
 
  // <--- THIS CLOSES YOUR 1,000 GAME LIST. DO NOT REMOVE THIS.
 
-ffunction buildStash() {
+function buildStash() {
     const container = document.getElementById('sections-container');
     const searchBar = document.getElementById('game-search');
     if (!container) return;
