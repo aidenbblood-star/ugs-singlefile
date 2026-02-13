@@ -1052,37 +1052,44 @@ function buildStash() {
         section.appendChild(btn); 
     });
 
-         // 3. DYNAMIC HEADER SEARCH
+           // 3. CORRECTED DYNAMIC HEADER SEARCH
     if (searchBar) {
         searchBar.oninput = () => {
-            const val = searchBar.value.trim();
-            const firstChar = val.charAt(0).toUpperCase(); // Get first letter of search
+            const val = searchBar.value.trim().toLowerCase();
             const sections = document.querySelectorAll('div[id^="section-"]');
 
             sections.forEach(sec => {
                 const buttons = sec.querySelectorAll('.game-btn');
                 const header = sec.querySelector('.letter-header');
-                let hasMatch = false;
+                const originalLetter = sec.id.split('-')[1]; // Grabs the "A", "B", etc. from the ID
+                
+                let matchesFound = 0;
 
                 buttons.forEach(btn => {
-                    const match = val === "" || btn.innerText.toLowerCase().includes(val.toLowerCase());
-                    btn.style.display = match ? "block" : "none";
-                    if (match) hasMatch = true;
+                    const isMatch = val === "" || btn.innerText.toLowerCase().includes(val);
+                    btn.style.display = isMatch ? "block" : "none";
+                    if (isMatch) matchesFound++;
                 });
 
-                // Update header text to the first letter of the search
-                if (header && val !== "") {
-                    header.textContent = firstChar;
-                } else if (header && val === "") {
-                    // Reset to original letter (from ID) if search is empty
-                    header.textContent = sec.id.split('-')[1];
+                if (header) {
+                    if (val === "") {
+                        // Reset to original letter when search is empty
+                        header.textContent = originalLetter;
+                    } else if (matchesFound > 0) {
+                        // If there's a match, show the search's first letter
+                        header.textContent = val.charAt(0).toUpperCase();
+                    } else {
+                        // If no matches in this section, keep original or clear it
+                        header.textContent = originalLetter;
+                    }
                 }
 
-                // Keep everything visible as requested
+                // Keeps all sections visible as you requested
                 sec.style.display = "block";
             });
         };
     }
+
 
 
     } // This closes the buildStash function
