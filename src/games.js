@@ -1078,6 +1078,8 @@ function buildStash() {
             });
         };
     }
+    } // This closes the buildStash function
+
 
 
 
