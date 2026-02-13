@@ -1025,7 +1025,7 @@ function buildStash() {
             section = document.createElement('div');
             section.id = `section-${letter}`;
             section.style.width = "100%";
-            // Ensure the header is inside the section div
+            // Header is inside the section div so we can hide the whole thing
             section.innerHTML = `<div class="letter-header">${letter}</div>`;
             container.appendChild(section);
         }
@@ -1038,7 +1038,7 @@ function buildStash() {
             const currentHash = window.GAME_HASH || "main";
             const fileName = game.gameUrl.split('/').pop();
             
-            // FIXED URL: Added back myUser and myRepo (replace these if they differ)
+            // Fixed the URL to include your user and repo correctly
             const finalUrl = `https://fastly.jsdelivr.net/gh/aidenbblood-star/ugs-singlefile@${currentHash}/UGS-Files/${fileName}?t=${Date.now()}`;
 
             fetch(finalUrl)
@@ -1050,34 +1050,33 @@ function buildStash() {
                         newWin.document.write(html); 
                         newWin.document.close(); 
                     }
-                }).catch(err => alert("Error loading game: " + err));
+                }).catch(err => console.error("Error:", err));
         };
         section.appendChild(btn); 
     });
 
-    // 3. THE "ULTIMATE" SEARCH (Handles headers correctly)
+    // 3. THE SEARCH (Hides Headers + Buttons)
     if (searchBar) {
         searchBar.oninput = () => {
-            const val = searchBar.value.toLowerCase();
+            const val = searchBar.value.toLowerCase().trim();
             const sections = document.querySelectorAll('div[id^="section-"]');
 
             sections.forEach(sec => {
                 const buttons = sec.querySelectorAll('.game-btn');
-                let hasMatch = false;
+                let hasVisibleMatch = false;
 
                 buttons.forEach(btn => {
-                    const match = btn.innerText.toLowerCase().includes(val);
-                    btn.style.display = match ? "block" : "none";
-                    if (match) hasMatch = true;
+                    const isMatch = btn.innerText.toLowerCase().includes(val);
+                    btn.style.display = isMatch ? "block" : "none";
+                    if (isMatch) hasVisibleMatch = true;
                 });
 
-                // This specifically hides the "A", "B", "C" header sections
-                sec.style.display = hasMatch ? "block" : "none";
+                // This line kills the header if no games match
+                sec.style.display = hasVisibleMatch ? "block" : "none";
             });
         };
     }
 }
-
 
 
 
