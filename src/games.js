@@ -1052,7 +1052,7 @@ function buildStash() {
         section.appendChild(btn); 
     });
 
-    // 3. THE "INVINCIBLE" SEARCH
+      // 3. THE FINAL HEADER-FIX SEARCH
     if (searchBar) {
         searchBar.oninput = () => {
             const val = searchBar.value.toLowerCase().trim();
@@ -1063,13 +1063,13 @@ function buildStash() {
                 let matchesFound = 0;
 
                 buttons.forEach(btn => {
-                    // If search is empty, show everything. Otherwise, check match.
                     const isMatch = val === "" || btn.innerText.toLowerCase().includes(val);
                     btn.style.display = isMatch ? "block" : "none";
                     if (isMatch) matchesFound++;
                 });
 
-                // Show section if matches exist or if search is empty
+                // This is the key: If matchesFound is 0, hide the ENTIRE DIV
+                // which includes the header inside it.
                 if (val === "" || matchesFound > 0) {
                     sec.style.display = "block";
                 } else {
@@ -1078,7 +1078,6 @@ function buildStash() {
             });
         };
     }
-} // <--- THIS WAS MISSING. DO NOT FORGET THIS BRACKET!
 
 
 
