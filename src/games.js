@@ -1010,20 +1010,16 @@ function buildStash() {
     const searchBar = document.getElementById('game-search');
     if (!container) return;
     
-    container.innerHTML = ''; // 1. Clear container once
-    
+    container.innerHTML = '';
     allGames.sort((a, b) => a.name.localeCompare(b.name));
 
-    // 2. THE GROUPING FIX (Stops the Triple E)
+    // 1. PERFECT GROUPING
     allGames.forEach(game => {
         let cleanName = game.name.startsWith('cl') ? game.name.substring(2) : game.name;
         const firstChar = cleanName.charAt(0).toUpperCase();
         
-        // CHECK: Does this section already exist?
         let section = document.getElementById(`section-${firstChar}`);
-        
         if (!section) {
-            // ONLY create the header if it DOES NOT exist yet
             section = document.createElement('div');
             section.id = `section-${firstChar}`;
             section.style.width = "100%";
@@ -1039,26 +1035,21 @@ function buildStash() {
             const currentHash = window.GAME_HASH || "main";
             const fileName = game.gameUrl.split('/').pop();
             const finalUrl = `https://fastly.jsdelivr.net/gh/aidenbblood-star/ugs-singlefile@${currentHash}/UGS-Files/${fileName}?t=${Date.now()}`;
-
-            fetch(finalUrl)
-                .then(r => r.ok ? r.text() : Promise.reject('File not found'))
-                .then(html => {
-                    const newWin = window.open("about:blank", "_blank");
-                    if (newWin) { 
-                        newWin.document.open(); 
-                        newWin.document.write(html); 
-                        newWin.document.close(); 
-                    }
-                }).catch(err => console.error("Error:", err));
+            fetch(finalUrl).then(r => r.ok ? r.text() : Promise.reject()).then(html => {
+                const newWin = window.open("about:blank", "_blank");
+                if (newWin) { newWin.document.open(); newWin.document.write(html); newWin.document.close(); }
+            }).catch(console.error);
         };
-        section.appendChild(btn); // Add the game to the existing section
+        section.appendChild(btn); 
     });
 
-    // 3. THE SEARCH LOGIC
+    // 2. THE FIX: Only rename headers IF they have a match
     if (searchBar) {
         searchBar.oninput = () => {
             const val = searchBar.value.trim().toLowerCase();
+            const firstLetterOfSearch = val.charAt(0).toUpperCase();
             const sections = document.querySelectorAll('div[id^="section-"]');
+
             sections.forEach(sec => {
                 const buttons = sec.querySelectorAll('.game-btn');
                 const header = sec.querySelector('.letter-header');
@@ -1072,10 +1063,18 @@ function buildStash() {
                 });
 
                 if (header) {
-                    header.textContent = (val !== "" && visibleCount > 0) ? val.charAt(0).toUpperCase() : originalChar;
+                    // ONLY change the header if matches were actually found in THIS section
+                    if (val !== "" && visibleCount > 0) {
+                        header.textContent = firstLetterOfSearch;
+                    } else {
+                        header.textContent = originalChar;
+                    }
                 }
-                sec.style.display = "block"; 
+                
+                // Hide the whole section if no games inside it match your search
+                sec.style.display = (val === "" || visibleCount > 0) ? "block" : "none";
             });
         };
     }
 }
+
