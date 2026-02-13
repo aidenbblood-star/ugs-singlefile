@@ -1010,24 +1010,20 @@ function buildStash() {
     const searchBar = document.getElementById('game-search');
     if (!container) return;
     
-    // 1. Clear container once at the start to prevent double-loading
-    container.innerHTML = '';
+    container.innerHTML = ''; // 1. Clear container once
     
-    // 2. Sort games A-Z globally
     allGames.sort((a, b) => a.name.localeCompare(b.name));
 
-    // 3. Create Grouped Sections & Buttons
+    // 2. THE GROUPING FIX (Stops the Triple E)
     allGames.forEach(game => {
         let cleanName = game.name.startsWith('cl') ? game.name.substring(2) : game.name;
-        
-        // THE FIX: Force uppercase so 'e' and 'E' go to the same ID
         const firstChar = cleanName.charAt(0).toUpperCase();
         
-        // CHECK: Does a section for this character already exist?
+        // CHECK: Does this section already exist?
         let section = document.getElementById(`section-${firstChar}`);
         
         if (!section) {
-            // ONLY create the DIV and Header if it DOES NOT exist yet
+            // ONLY create the header if it DOES NOT exist yet
             section = document.createElement('div');
             section.id = `section-${firstChar}`;
             section.style.width = "100%";
@@ -1042,7 +1038,7 @@ function buildStash() {
         btn.onclick = () => {
             const currentHash = window.GAME_HASH || "main";
             const fileName = game.gameUrl.split('/').pop();
-            const finalUrl = `https://fastly.jsdelivr.net/aidenbblood-star/ugs-singlefile@${currentHash}/UGS-Files/${fileName}?t=${Date.now()}`;
+            const finalUrl = `https://fastly.jsdelivr.net/gh/aidenbblood-star/ugs-singlefile@${currentHash}/UGS-Files/${fileName}?t=${Date.now()}`;
 
             fetch(finalUrl)
                 .then(r => r.ok ? r.text() : Promise.reject('File not found'))
@@ -1053,23 +1049,19 @@ function buildStash() {
                         newWin.document.write(html); 
                         newWin.document.close(); 
                     }
-                }).catch(err => console.error("Error loading game:", err));
+                }).catch(err => console.error("Error:", err));
         };
-        
-        // Always add the button to the correctly grouped section
-        section.appendChild(btn); 
+        section.appendChild(btn); // Add the game to the existing section
     });
 
-    // 4. THE DYNAMIC SEARCH (Updates all visible headers)
+    // 3. THE SEARCH LOGIC
     if (searchBar) {
         searchBar.oninput = () => {
             const val = searchBar.value.trim().toLowerCase();
             const sections = document.querySelectorAll('div[id^="section-"]');
-
             sections.forEach(sec => {
                 const buttons = sec.querySelectorAll('.game-btn');
                 const header = sec.querySelector('.letter-header');
-                // Grabs the original character from the ID (e.g., "E" from "section-E")
                 const originalChar = sec.id.replace('section-', ''); 
                 let visibleCount = 0;
 
@@ -1080,14 +1072,10 @@ function buildStash() {
                 });
 
                 if (header) {
-                    // Update header to search's first letter if results exist, otherwise reset to original
                     header.textContent = (val !== "" && visibleCount > 0) ? val.charAt(0).toUpperCase() : originalChar;
                 }
-                
-                // Keep headers visible per your preference
                 sec.style.display = "block"; 
             });
         };
     }
 }
-
