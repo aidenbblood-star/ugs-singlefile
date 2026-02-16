@@ -1009,70 +1009,74 @@ function buildStash() {
     const container = document.getElementById('sections-container');
     const searchBar = document.getElementById('game-search');
     if (!container) return;
-    
+
+    // Clear and sort
     container.innerHTML = '';
     allGames.sort((a, b) => a.name.localeCompare(b.name));
 
-    // 1. PERFECT GROUPING
+    // 1. BUILD THE UI
     allGames.forEach(game => {
+        // Strip 'cl' prefix if it exists for the display name
         let cleanName = game.name.startsWith('cl') ? game.name.substring(2) : game.name;
         const firstChar = cleanName.charAt(0).toUpperCase();
-        
+
+        // Find or Create Section
         let section = document.getElementById(`section-${firstChar}`);
         if (!section) {
             section = document.createElement('div');
             section.id = `section-${firstChar}`;
+            section.className = 'game-section'; // Useful for CSS
             section.style.width = "100%";
             section.innerHTML = `<div class="letter-header">${firstChar}</div>`;
             container.appendChild(section);
         }
 
+        // Create Game Button
         const btn = document.createElement('button');
         btn.className = 'game-btn';
-        btn.innerText = cleanName; 
+        btn.innerText = cleanName;
         
         btn.onclick = () => {
             const currentHash = window.GAME_HASH || "main";
             const fileName = game.gameUrl.split('/').pop();
             const finalUrl = `https://fastly.jsdelivr.net/gh/aidenbblood-star/ugs-singlefile@${currentHash}/UGS-Files/${fileName}?t=${Date.now()}`;
-            fetch(finalUrl).then(r => r.ok ? r.text() : Promise.reject()).then(html => {
-                const newWin = window.open("about:blank", "_blank");
-                if (newWin) { newWin.document.open(); newWin.document.write(html); newWin.document.close(); }
-            }).catch(console.error);
+            
+            fetch(finalUrl)
+                .then(r => r.ok ? r.text() : Promise.reject())
+                .then(html => {
+                    const newWin = window.open("about:blank", "_blank");
+                    if (newWin) {
+                        newWin.document.open();
+                        newWin.document.write(html);
+                        newWin.document.close();
+                    }
+                })
+                .catch(err => console.error("Error loading game:", err));
         };
-        section.appendChild(btn); 
+
+        section.appendChild(btn);
     });
 
-    // 2. THE FIX: Only rename headers IF they have a match
+    // 2. SEARCH LOGIC
     if (searchBar) {
         searchBar.oninput = () => {
             const val = searchBar.value.trim().toLowerCase();
-            const firstLetterOfSearch = val.charAt(0).toUpperCase();
-            const sections = document.querySelectorAll('div[id^="section-"]');
+            const sections = container.querySelectorAll('div[id^="section-"]');
 
             sections.forEach(sec => {
                 const buttons = sec.querySelectorAll('.game-btn');
-                const header = sec.querySelector('.letter-header');
-                const originalChar = sec.id.replace('section-', ''); 
                 let visibleCount = 0;
 
                 buttons.forEach(btn => {
+                    // Match based on the displayed cleanName
                     const isMatch = val === "" || btn.innerText.toLowerCase().includes(val);
                     btn.style.display = isMatch ? "block" : "none";
                     if (isMatch) visibleCount++;
                 });
 
-                if (header) {
-                    // ONLY change the header if matches were actually found in THIS section
-                    if (val !== "" && visibleCount > 0) {
-                        header.textContent = firstLetterOfSearch;
-                    } else {
-                        header.textContent = originalChar;
-                    }
-                }
-                
-                // Hide the whole section if no games inside it match your search
-                sec.style.display = (val === "" || visibleCount > 0) ? "block" : "none";
+                // Visibility Toggle: Hide the entire section if no games inside match
+                // If search is empty, visibleCount will be > 0, so section shows.
+                sec.style.display = (visibleCount > 0) ? "block" : "none";
             });
         };
     }
