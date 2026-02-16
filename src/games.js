@@ -1010,14 +1010,16 @@ function buildStash() {
     const searchBar = document.getElementById('game-search');
     if (!container) return;
 
-    // 1. INITIAL BUILD
+    // 1. INITIAL BUILD & SORT
     container.innerHTML = '';
     allGames.sort((a, b) => a.name.localeCompare(b.name));
 
     allGames.forEach(game => {
+        // Strip 'cl' prefix for the clean display name
         let cleanName = game.name.startsWith('cl') ? game.name.substring(2) : game.name;
         const firstChar = cleanName.charAt(0).toUpperCase();
 
+        // Find or create the alphabetical/numerical section
         let section = document.getElementById(`section-${firstChar}`);
         if (!section) {
             section = document.createElement('div');
@@ -1028,26 +1030,33 @@ function buildStash() {
             container.appendChild(section);
         }
 
+        // Create the game button
         const btn = document.createElement('button');
         btn.className = 'game-btn';
         btn.innerText = cleanName;
+        
         btn.onclick = () => {
             const currentHash = window.GAME_HASH || "main";
             const fileName = game.gameUrl.split('/').pop();
             const finalUrl = `https://fastly.jsdelivr.net/gh/aidenbblood-star/ugs-singlefile@${currentHash}/UGS-Files/${fileName}?t=${Date.now()}`;
-            fetch(finalUrl).then(r => r.ok ? r.text() : Promise.reject()).then(html => {
-                const newWin = window.open("about:blank", "_blank");
-                if (newWin) {
-                    newWin.document.open();
-                    newWin.document.write(html);
-                    newWin.document.close();
-                }
-            }).catch(console.error);
+            
+            fetch(finalUrl)
+                .then(r => r.ok ? r.text() : Promise.reject())
+                .then(html => {
+                    const newWin = window.open("about:blank", "_blank");
+                    if (newWin) {
+                        newWin.document.open();
+                        newWin.document.write(html);
+                        newWin.document.close();
+                    }
+                })
+                .catch(err => console.error("Fetch error:", err));
         };
+
         section.appendChild(btn);
     });
 
-    // 2. SEARCH LOGIC
+    // 2. THE STRICT PREFIX SEARCH LOGIC
     if (searchBar) {
         searchBar.oninput = () => {
             const val = searchBar.value.trim().toLowerCase();
@@ -1055,27 +1064,23 @@ function buildStash() {
 
             sections.forEach(sec => {
                 const buttons = sec.querySelectorAll('.game-btn');
-                const header = sec.querySelector('.letter-header');
-                const originalChar = sec.id.replace('section-', '');
                 let visibleCount = 0;
 
                 buttons.forEach(btn => {
-                    const gameName = btn.innerText.toLowerCase();
-                    // Match if search is empty OR game name contains the search term
-                    const isMatch = val === "" || gameName.includes(val);
+                    const btnText = btn.innerText.toLowerCase();
+                    
+                    // Logic: Button is visible ONLY if search is empty 
+                    // OR if the game name STARTS with exactly what you typed
+                    const isMatch = val === "" || btnText.startsWith(val);
                     
                     btn.style.display = isMatch ? "block" : "none";
                     if (isMatch) visibleCount++;
                 });
 
-                // ALWAYS keep the header text the same as the original character
-                if (header) {
-                    header.textContent = originalChar;
-                }
-
-                // Show the section only if it has matching games inside
+                // Section (and its header) is visible ONLY if it has matching games
                 sec.style.display = (visibleCount > 0) ? "block" : "none";
             });
         };
     }
 }
+
