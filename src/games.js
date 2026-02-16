@@ -1010,84 +1010,69 @@ function buildStash() {
     const searchBar = document.getElementById('game-search');
     if (!container) return;
 
-    // Clear and sort the full game list
     container.innerHTML = '';
     allGames.sort((a, b) => a.name.localeCompare(b.name));
 
-    // 1. BUILD THE UI
+    // 1. BUILD UI (Individual headers for every number)
     allGames.forEach(game => {
-        // Strip 'cl' prefix for display and logic
         let cleanName = game.name.startsWith('cl') ? game.name.substring(2) : game.name;
-        let firstChar = cleanName.charAt(0).toUpperCase();
+        const firstChar = cleanName.charAt(0).toUpperCase();
 
-        // Group all games starting with a digit under the "#" header
-        if (/\d/.test(firstChar)) {
-            firstChar = "#";
-        }
-
-        // Find or Create the Section
         let section = document.getElementById(`section-${firstChar}`);
         if (!section) {
             section = document.createElement('div');
             section.id = `section-${firstChar}`;
-            section.className = 'game-section';
             section.style.width = "100%";
             section.innerHTML = `<div class="letter-header">${firstChar}</div>`;
             container.appendChild(section);
         }
 
-        // Create Game Button
         const btn = document.createElement('button');
         btn.className = 'game-btn';
         btn.innerText = cleanName;
-        
         btn.onclick = () => {
             const currentHash = window.GAME_HASH || "main";
             const fileName = game.gameUrl.split('/').pop();
             const finalUrl = `https://fastly.jsdelivr.net/gh/aidenbblood-star/ugs-singlefile@${currentHash}/UGS-Files/${fileName}?t=${Date.now()}`;
-            
-            fetch(finalUrl)
-                .then(r => r.ok ? r.text() : Promise.reject())
-                .then(html => {
-                    const newWin = window.open("about:blank", "_blank");
-                    if (newWin) {
-                        newWin.document.open();
-                        newWin.document.write(html);
-                        newWin.document.close();
-                    }
-                })
-                .catch(err => console.error("Error loading game:", err));
+            fetch(finalUrl).then(r => r.ok ? r.text() : Promise.reject()).then(html => {
+                const newWin = window.open("about:blank", "_blank");
+                if (newWin) {
+                    newWin.document.open();
+                    newWin.document.write(html);
+                    newWin.document.close();
+                }
+            }).catch(console.error);
         };
-
         section.appendChild(btn);
     });
 
-    // 2. STABLE SEARCH LOGIC
+    // 2. HEADER-ONLY SEARCH LOGIC
     if (searchBar) {
         searchBar.oninput = () => {
-            const val = searchBar.value.trim().toLowerCase();
-            const sections = container.querySelectorAll('div[id^="section-"]');
+            const val = searchBar.value.trim().toUpperCase(); // Capitalize search
+            const sections = document.querySelectorAll('div[id^="section-"]');
 
             sections.forEach(sec => {
+                const headerText = sec.id.replace('section-', '').toUpperCase();
+                
+                // IF search is empty: show everything
+                // IF search matches the header EXACTLY: show that section
+                // IF search is more than 1 char: check if game names START with the string
+                const isHeaderMatch = val === "" || headerText === val;
+                
                 const buttons = sec.querySelectorAll('.game-btn');
-                const header = sec.querySelector('.letter-header');
-                const originalChar = sec.id.replace('section-', '');
                 let visibleCount = 0;
 
                 buttons.forEach(btn => {
-                    // Check if the name contains the search term anywhere
-                    const isMatch = val === "" || btn.innerText.toLowerCase().includes(val);
+                    const btnText = btn.innerText.toUpperCase();
+                    // Show button if it's an exact header match OR if name starts with the search
+                    const isMatch = val === "" || headerText === val || btnText.startsWith(val);
                     btn.style.display = isMatch ? "block" : "none";
                     if (isMatch) visibleCount++;
                 });
 
-                // Keep header as original (e.g., "#" or "A") so "12minibattles" stays in place
-                if (header) {
-                    header.textContent = originalChar;
-                }
-
-                // Hide section if empty, show if games match
-                sec.style.display = (visibleCount > 0) ? "block" : "none";
+                // Hide the whole section unless it's the specific header you typed
+                sec.style.display = (visibleCount > 0 && (val === "" || headerText === val || buttons[0].innerText.toUpperCase().startsWith(val))) ? "block" : "none";
             });
         };
     }
